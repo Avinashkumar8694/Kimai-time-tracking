@@ -1,0 +1,36 @@
+version: '3.5'
+services:
+  sqldb:
+    image: mysql:5.7
+    environment:
+      - MYSQL_DATABASE=kimai
+      - MYSQL_USER=kimai
+      - MYSQL_PASSWORD=kimai
+      - MYSQL_ROOT_PASSWORD=kimai
+    volumes:
+      - ./kimai2_db:/var/lib/mysql
+    command: --default-storage-engine innodb
+    restart: unless-stopped
+  nginx:
+    image: tobybatch/nginx-fpm-reverse-proxy
+    ports:
+      - 8080:80
+    volumes:
+      - public:/opt/kimai/public:ro
+    restart: unless-stopped
+    depends_on:
+      - kimai
+  kimai:
+    image: kimai/kimai2:latest
+    environment:
+      - APP_ENV=prod
+      - TRUSTED_HOSTS=localhost
+      - ADMINMAIL=arjunkumargupta108@gmail.com
+      - ADMINPASS=changemeplease
+      - DATABASE_URL=mysql://kimai:kimai@sqldb/kimai
+      - TRUSTED_HOSTS=nginx,localhost,127.0.0.1
+    volumes:
+      - public:/opt/kimai/public
+    restart: unless-stopped
+volumes:
+    public:
